@@ -1,19 +1,14 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { supabase } from './supabase'
+import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut as authSignOut } from './auth-utils'
 
 type User = {
   id: string
-  name: string
+  name?: string
   email: string
 } | null
-
-type MockUser = {
-  id: string
-  name: string
-  email: string
-  password: string
-}
 
 type AuthContextType = {
   user: User
@@ -25,160 +20,113 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Mock user database
-const MOCK_USERS_KEY = 'polling_app_mock_users'
-const CURRENT_USER_KEY = 'polling_app_current_user'
-
-// Initialize mock users if they don't exist
-const initializeMockUsers = (): MockUser[] => {
-  if (typeof window === 'undefined') return []
-  
-  const existingUsers = localStorage.getItem(MOCK_USERS_KEY)
-  if (existingUsers) {
-    return JSON.parse(existingUsers)
-  }
-  
-  // Create default admin user
-  const defaultUsers: MockUser[] = [
-    {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      password: 'password123'
-    }
-  ]
-  
-  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(defaultUsers))
-  return defaultUsers
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Check if user is already logged in on mount
   useEffect(() => {
-    // Initialize mock users
-    initializeMockUsers()
-    
-    // Check for existing logged in user
-    const checkAuthState = () => {
+    const checkAuthState = async () => {
       try {
-        const savedUser = localStorage.getItem(CURRENT_USER_KEY)
-        if (savedUser) {
-          const parsedUser = JSON.parse(savedUser)
-          setUser({
-            id: parsedUser.id,
-            name: parsedUser.name,
-            email: parsedUser.email
-          })
+        // Check for existing session
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session) {
+          const { user: currentUser, error } = await getCurrentUser()
+          if (currentUser && !error) {
+            setUser(currentUser)
+          } else {
+            setUser(null)
+          }
+        } else {
+          setUser(null)
         }
-        setIsLoading(false)
       } catch (error) {
         console.error('Error checking auth state:', error)
         setUser(null)
+      } finally {
         setIsLoading(false)
       }
     }
 
     checkAuthState()
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          const { user: currentUser, error } = await getCurrentUser()
+          if (currentUser && !error) {
+            setUser(currentUser)
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+        }
+      }
+    )
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true)
     try {
-      // Get users from local storage
-      const users: MockUser[] = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]')
+      const { user: authUser, error } = await signInWithEmail(email, password)
       
-      // Find user with matching email and password
-      const foundUser = users.find(u => u.email === email && u.password === password)
-      
-      if (foundUser) {
-        // Create a user object without the password
-        const userToSave = {
-          id: foundUser.id,
-          name: foundUser.name,
-          email: foundUser.email
-        }
-        
-        // Save to local storage
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userToSave))
-        
-        // Update state
-        setUser(userToSave)
-        setIsLoading(false)
-        return true
-      } else {
-        console.error('Invalid email or password')
-        setIsLoading(false)
+      if (error || !authUser) {
+        console.error('Error signing in:', error?.message || 'Unknown error')
         return false
       }
+      
+      setUser(authUser)
+      return true
     } catch (error) {
       console.error('Error signing in:', error)
-      setIsLoading(false)
       return false
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const signUp = async (name: string, email: string, password: string): Promise<boolean> => {
     setIsLoading(true)
     try {
-      // Get existing users
-      const users: MockUser[] = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]')
+      const { user: authUser, error } = await signUpWithEmail(email, password, name)
       
-      // Check if email already exists
-      if (users.some(u => u.email === email)) {
-        console.error('Email already in use')
-        setIsLoading(false)
+      if (error || !authUser) {
+        console.error('Error signing up:', error?.message || 'Unknown error')
         return false
       }
       
-      // Create new user
-      const newUser: MockUser = {
-        id: `${users.length + 1}`,
-        name,
-        email,
-        password
-      }
-      
-      // Add to users array
-      users.push(newUser)
-      localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users))
-      
-      // Create a user object without the password
-      const userToSave = {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email
-      }
-      
-      // Save current user
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userToSave))
-      
-      // Update state
-      setUser(userToSave)
-      setIsLoading(false)
+      setUser(authUser)
       return true
     } catch (error) {
       console.error('Error signing up:', error)
-      setIsLoading(false)
       return false
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const signOut = async () => {
     setIsLoading(true)
     try {
-      // Remove current user from local storage
-      localStorage.removeItem(CURRENT_USER_KEY)
+      const { error } = await authSignOut()
       
-      // Update state
+      if (error) {
+        console.error('Error signing out:', error.message)
+        throw new Error(error.message)
+      }
+      
       setUser(null)
-      setIsLoading(false)
     } catch (error) {
       console.error('Error signing out:', error)
-      setIsLoading(false)
       throw error
+    } finally {
+      setIsLoading(false)
     }
   }
 

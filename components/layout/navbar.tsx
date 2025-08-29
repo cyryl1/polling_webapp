@@ -41,6 +41,12 @@ export default function Navbar() {
                   >
                     Create Poll
                   </Link>
+                  <Link 
+                    href="/admin" 
+                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${pathname === '/admin' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:border-gray-300 hover:text-foreground'}`}
+                  >
+                    Admin
+                  </Link>
                 </>
               )}
             </div>
@@ -120,17 +126,24 @@ export default function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${pathname === '/dashboard' ? 'border-primary bg-primary/10 text-foreground' : 'border-transparent text-muted-foreground hover:border-gray-300 hover:bg-accent hover:text-foreground'}`}
+                  className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${pathname === '/dashboard' ? 'border-primary bg-primary/10 text-primary' : 'border-transparent text-muted-foreground hover:border-gray-300 hover:bg-gray-50 hover:text-foreground'}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/polls/create"
-                  className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${pathname === '/polls/create' ? 'border-primary bg-primary/10 text-foreground' : 'border-transparent text-muted-foreground hover:border-gray-300 hover:bg-accent hover:text-foreground'}`}
+                  className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${pathname === '/polls/create' ? 'border-primary bg-primary/10 text-primary' : 'border-transparent text-muted-foreground hover:border-gray-300 hover:bg-gray-50 hover:text-foreground'}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Create Poll
+                </Link>
+                <Link
+                  href="/admin"
+                  className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${pathname === '/admin' ? 'border-primary bg-primary/10 text-foreground' : 'border-transparent text-muted-foreground hover:border-gray-300 hover:bg-accent hover:text-foreground'}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Admin
                 </Link>
                 <div className="border-t border-gray-200 pt-4 pb-3">
                   <div className="flex items-center px-4">
