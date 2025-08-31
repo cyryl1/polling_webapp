@@ -79,38 +79,34 @@ export default function PollPage() {
       {hasVoted ? (
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Thank you for voting!</h1>
-          <p className="text-lg text-gray-600">Your response has been recorded.</p>
+          <p className="text-lg text-gray-600">Results coming soon...</p>
         </div>
       ) : (
-        <>
-          <h1 className="text-2xl font-bold mb-4">{poll.question}</h1>
-          <div className="flex flex-col space-y-2">
+        <div className="p-6 bg-white rounded-lg shadow-md w-full max-w-md">
+          <h1 className="text-2xl font-bold mb-4 text-center">{poll.question}</h1>
+          <div className="flex flex-col space-y-2 mb-4">
             {poll.options.map((option) => (
-              <label key={option.id} className="inline-flex items-center">
+              <label key={option.id} className="inline-flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer">
                 <input
                   type="radio"
-                  className="form-radio"
+                  className="form-radio h-5 w-5 text-blue-600"
                   name="poll-option"
                   value={option.id}
                   checked={selectedOption === option.id}
                   onChange={(e) => setSelectedOption(e.target.value)}
                 />
-                <span className="ml-2 text-lg">{option.text}</span>
+                <span className="ml-3 text-lg text-gray-800">{option.text}</span>
               </label>
             ))}
           </div>
           <button
             onClick={handleVote}
-            disabled={selectedOption === null}
-            className={`mt-6 px-4 py-2 rounded-md transition-all duration-200 ${
-              selectedOption === null 
-                ? 'bg-gray-400 cursor-not-allowed opacity-50' 
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-            }`}
+            disabled={!selectedOption}
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50 hover:bg-blue-600 transition-colors duration-200"
           >
-            {selectedOption === null ? 'Select an option' : 'Vote'}
+            Vote
           </button>
-        </>
+        </div>
       )}
     </div>
   );
