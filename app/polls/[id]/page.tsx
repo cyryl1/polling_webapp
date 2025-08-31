@@ -1,205 +1,117 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import ProtectedRoute from '@/components/auth/protected-route'
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 
-// Mock poll data types
-type Option = {
-  id: string
-  text: string
-  votes: number
+interface PollOption {
+  id: string;
+  text: string;
 }
 
-type Poll = {
-  id: string
-  title: string
-  description: string
-  createdAt: string
-  options: Option[]
-  totalVotes: number
+interface PollData {
+  id: string;
+  question: string;
+  options: PollOption[];
 }
 
-export default function PollPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [poll, setPoll] = useState<Poll | null>(null)
-  const [selectedOption, setSelectedOption] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [hasVoted, setHasVoted] = useState(false)
+const mockPolls: Record<string, PollData> = {
+  '1': {
+    id: '1',
+    question: 'What is your favorite color?',
+    options: [
+      { id: '1', text: 'Red' },
+      { id: '2', text: 'Blue' },
+      { id: '3', text: 'Green' },
+    ],
+  },
+  '2': {
+    id: '2',
+    question: 'Best Programming Language?',
+    options: [
+      { id: '1', text: 'JavaScript' },
+      { id: '2', text: 'Python' },
+      { id: '3', text: 'TypeScript' },
+      { id: '4', text: 'Java' },
+    ],
+  },
+};
+
+export default function PollPage() {
+  const params = useParams();
+  const pollId = params.id as string;
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [poll, setPoll] = useState<PollData | null>(null);
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    const fetchPoll = async () => {
-      try {
-        // Simulate API call
-        setTimeout(() => {
-          const mockPoll: Poll = {
-            id: params.id,
-            title: params.id === '1' ? 'Favorite Programming Language' : 'Sample Poll',
-            description: 'Please select your preferred option',
-            createdAt: new Date().toISOString(),
-            options: [
-              { id: '1', text: 'JavaScript', votes: 15 },
-              { id: '2', text: 'Python', votes: 12 },
-              { id: '3', text: 'TypeScript', votes: 8 },
-              { id: '4', text: 'Java', votes: 7 },
-            ],
-            totalVotes: 42
-          }
-          setPoll(mockPoll)
-          setIsLoading(false)
-        }, 1000)
-      } catch (error) {
-        console.error('Error fetching poll:', error)
-        setIsLoading(false)
-      }
+    if (pollId) {
+      setPoll(mockPolls[pollId] || null);
     }
+  }, [pollId]);
 
-    fetchPoll()
-  }, [params.id])
-
-  const handleVote = async () => {
-    if (!selectedOption) return
-    
-    setIsSubmitting(true)
-    
-    try {
-      // TODO: Replace with actual API call
-      // Simulate API call
-      setTimeout(() => {
-        // Update the poll with the new vote
-        if (poll) {
-          const updatedOptions = poll.options.map(option => {
-            if (option.id === selectedOption) {
-              return { ...option, votes: option.votes + 1 }
-            }
-            return option
-          })
-          
-          setPoll({
-            ...poll,
-            options: updatedOptions,
-            totalVotes: poll.totalVotes + 1
-          })
-          
-          setHasVoted(true)
-          setIsSubmitting(false)
-        }
-      }, 1000)
-    } catch (error) {
-      console.error('Error submitting vote:', error)
-      setIsSubmitting(false)
+  const handleVote = () => {
+    if (selectedOption) {
+      setHasVoted(true);
+      // In a real application, you would send the vote to the server here.
+      console.log(`Voted for option: ${selectedOption} on poll ${pollId}`);
     }
-  }
-
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <div className="container mx-auto py-8 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </ProtectedRoute>
-    )
-  }
+  };
 
   if (!poll) {
     return (
-      <ProtectedRoute>
-        <div className="container mx-auto py-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Poll not found</h2>
-          <p className="mb-6">The poll you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-          <Link href="/dashboard">
-            <Button>Back to Dashboard</Button>
-          </Link>
-        </div>
-      </ProtectedRoute>
-    )
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">
+        <h1 className="text-2xl font-bold mb-4">Poll not found</h1>
+      </div>
+    );
   }
 
-  const calculatePercentage = (votes: number) => {
-    if (poll.totalVotes === 0) return 0
-    return Math.round((votes / poll.totalVotes) * 100)
+  if (hasVoted) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">
+        <h1 className="text-2xl font-bold mb-4">Thank you for voting!</h1>
+        <p>Results coming soon...</p>
+      </div>
+    );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="container mx-auto py-8">
-        <div className="mb-6">
-          <Link href="/dashboard">
-            <Button variant="outline" size="sm">
-              &larr; Back to Dashboard
-            </Button>
-          </Link>
+    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+      {hasVoted ? (
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Thank you for voting!</h1>
+          <p className="text-lg text-gray-600">Your response has been recorded.</p>
         </div>
-        
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl">{poll.title}</CardTitle>
-            <CardDescription>
-              Created {new Date(poll.createdAt).toLocaleDateString()}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <p className="mb-6">{poll.description}</p>
-            
-            {!hasVoted ? (
-              <div className="space-y-4">
-                {poll.options.map((option) => (
-                  <div 
-                    key={option.id} 
-                    className={`p-4 border rounded-md cursor-pointer transition-colors ${selectedOption === option.id ? 'border-primary bg-primary/5' : 'hover:bg-accent'}`}
-                    onClick={() => setSelectedOption(option.id)}
-                  >
-                    {option.text}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {poll.options.map((option) => {
-                  const percentage = calculatePercentage(option.votes)
-                  
-                  return (
-                    <div key={option.id} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>{option.text}</span>
-                        <span>{percentage}% ({option.votes} votes)</span>
-                      </div>
-                      <div className="w-full bg-secondary rounded-full h-2.5">
-                        <div 
-                          className="bg-primary h-2.5 rounded-full" 
-                          style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  )
-                })}
-                
-                <p className="text-sm text-muted-foreground pt-2">
-                  Total votes: {poll.totalVotes}
-                </p>
-              </div>
-            )}
-          </CardContent>
-          
-          {!hasVoted && (
-            <CardFooter>
-              <Button 
-                onClick={handleVote} 
-                disabled={!selectedOption || isSubmitting} 
-                className="w-full"
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Vote'}
-              </Button>
-            </CardFooter>
-          )}
-        </Card>
-      </div>
-    </ProtectedRoute>
-  )
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold mb-4">{poll.question}</h1>
+          <div className="flex flex-col space-y-2">
+            {poll.options.map((option) => (
+              <label key={option.id} className="inline-flex items-center">
+                <input
+                  type="radio"
+                  className="form-radio"
+                  name="poll-option"
+                  value={option.id}
+                  checked={selectedOption === option.id}
+                  onChange={(e) => setSelectedOption(e.target.value)}
+                />
+                <span className="ml-2 text-lg">{option.text}</span>
+              </label>
+            ))}
+          </div>
+          <button
+            onClick={handleVote}
+            disabled={selectedOption === null}
+            className={`mt-6 px-4 py-2 rounded-md transition-all duration-200 ${
+              selectedOption === null 
+                ? 'bg-gray-400 cursor-not-allowed opacity-50' 
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {selectedOption === null ? 'Select an option' : 'Vote'}
+          </button>
+        </>
+      )}
+    </div>
+  );
 }

@@ -21,3 +21,5 @@ export const createServerSupabaseClient = () => {
 
 // Export a singleton instance for client components
 export const supabase = createSupabaseClient();
+export { createClient };
+

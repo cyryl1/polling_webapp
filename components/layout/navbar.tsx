@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-context'
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { user, signOut, isLoading } = useAuth()
+  const { user, signOut } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Skip rendering navbar on auth pages
