@@ -15,12 +15,18 @@ type Poll = {
   votesCount: number
 }
 
+/**
+ * Renders the user's dashboard, displaying a list of polls created by the user.
+ * It includes a protected route to ensure only authenticated users can access it.
+ * Currently uses mock data, but is set up to integrate with an API for fetching polls.
+ */
 export default function Dashboard() {
   const [polls, setPolls] = useState<Poll[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Replace with actual API call
+    // TODO: Replace this with an actual API call to fetch user-specific polls from Supabase.
+    // Currently, it simulates an API call with mock data.
     const fetchPolls = async () => {
       try {
         // Simulate API call

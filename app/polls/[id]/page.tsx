@@ -36,6 +36,10 @@ const mockPolls: Record<string, PollData> = {
   },
 };
 
+/**
+ * Renders a single poll page, allowing users to view the poll question and options, and cast their vote.
+ * It uses mock data for demonstration purposes and handles the local state for selected options and voting status.
+ */
 export default function PollPage() {
   const params = useParams();
   const pollId = params.id as string;
@@ -52,7 +56,8 @@ export default function PollPage() {
   const handleVote = () => {
     if (selectedOption) {
       setHasVoted(true);
-      // In a real application, you would send the vote to the server here.
+      // TODO: In a real application, this is where the vote would be sent to the server.
+      // This currently only logs the vote to the console.
       console.log(`Voted for option: ${selectedOption} on poll ${pollId}`);
     }
   };

@@ -9,6 +9,11 @@ import PollForm from '@/components/polls/poll-form';
 import { createPoll } from './actions';
 import { useToast } from '@/components/ui/use-toast';
 
+/**
+ * Renders the page for creating a new poll.
+ * This component provides a form for users to input a poll question and options,
+ * handles form submission, and displays toast notifications for success or error.
+ */
 export default function CreatePollPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();

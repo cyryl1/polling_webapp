@@ -3,6 +3,12 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 
+/**
+ * Handles user sign-in by authenticating with Supabase using email and password.
+ * Redirects to the dashboard upon successful sign-in, or returns an error.
+ * @param formData - FormData object containing 'email' and 'password'.
+ * @returns An object with an 'error' property if authentication fails, otherwise redirects.
+ */
 export async function signIn(
   formData: FormData
 ) {
@@ -23,6 +29,12 @@ export async function signIn(
   redirect('/dashboard')
 }
 
+/**
+ * Handles user sign-up by creating a new user in Supabase with email, password, and name.
+ * Redirects to the dashboard upon successful sign-up, or returns an error.
+ * @param formData - FormData object containing 'email', 'password', and 'name'.
+ * @returns An object with an 'error' property if sign-up fails, otherwise redirects.
+ */
 export async function signUp(
   formData: FormData
 ) {
@@ -49,6 +61,10 @@ export async function signUp(
   redirect('/dashboard')
 }
 
+/**
+ * Handles user sign-out by invalidating the current session with Supabase.
+ * Redirects to the sign-in page after successful sign-out.
+ */
 export async function signOut() {
   const supabase = createServerSupabaseClient()
   await supabase.auth.signOut()
